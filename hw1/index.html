@@ -1,7 +1,73 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Homework 1 index.html here
-	</body>
-</html>
+<html><head><style>h1,h2,h3,h4, img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+</style></head><body><h1 id="cs-184-homework-1-rasterizer">CS 184 Homework 1: Rasterizer</h1>
+<blockquote>
+<p>This assignment is in <a href="https://cs184.eecs.berkeley.edu/sp24/docs/hw1-spec">https://cs184.eecs.berkeley.edu/sp24/docs/hw1-spec</a></p>
+<p>The github code repo is in <a href="https://github.com/cal-cs184-student/hw1-rasterizer-sp24-212">https://github.com/cal-cs184-student/hw1-rasterizer-sp24-212</a></p>
+<p>Submission doc is in <a href="https://cal-cs184-student.github.io/hw-webpages-sp24-Zzz212zzZ/hw1/index.html">https://cal-cs184-student.github.io/hw-webpages-sp24-Zzz212zzZ/hw1/index.html</a></p>
+</blockquote>
+<h2 id="overview">Overview</h2>
+<p>In the first part of this homework, I rasterized triangles and then used supersampling to reduce the jaggy and, thus implementing the antialiasing mechanism. The third part of the &#39;transforms&#39; is basically using the matrix to implement the transforms, including translating, scaling, and rotating. For the Barycentric coordinates, on the one hand, it provides a novel way to express the point coordinates using three vertices of a triangle; on the other hand, it provides a way for finding the mapped point coordinates in &#39;texture mapping&#39;. Then comes the texture mapping: the nearest and bilinear pixel sample methods are implemented and compared in a picture, showing the advantages of bilinear pixel sample methods. Lastly, aside from the pixel sample method, level sample methods are also implemented in this part. In summary, this homework assignment deepen my understanding of the rasterization process.</p>
+<h2 id="task-1">Task 1</h2>
+<ol>
+<li>Basically, to rasterize such a triangle, we need to judge if a pixel is in a triangle. So I implemented a helper function <code>isPointInsideTriangle</code> to return True/False, indicating if we should assume this point appearing in this triangle and draw this pixel.</li>
+<li>A triangle with its three vertices actually represents the bounding box of this triangle. By finding the minimum and maximum x/y coordinates, we can reduce the process of iterating each pixel in this screen to only checking pixels within this triangle.</li>
+<li>As shown in the picture below, this rasterization is coarse because the jaggy and aliasing still exist. They can be reduced in the second part.</li>
+</ol>
+<p><img src="./assets/image-20240210131159123.png" alt="image-20240210131159123" style="zoom: 15%;" /></p>
+<h2 id="task-2">Task 2</h2>
+<ol>
+<li>For the structure in my supersampling algorithm: a pixel is divided into the number of <code>sample_rate</code> parts, and each part is taken into consideration. In the <code>rasterize_triangle</code> function, all the sampled points are stored in the <code>sample_buffer</code>, then the averaging process within one pixel is conducted in the <code>resolve_to_framebuffer</code> function. Other than the <code>rasterize_triangle</code> function, the supersampling is also conducted in the <code>fill_pixel</code> function (this is because the figure border, like the dragon, is not drawn in a triangle. So in order to reduce the jaggy of the figure border, this function is also revised as well). The supersampling is useful because it takes possibly more contents in a pixel instead of only the center point <code>(x+0.5, y+0.5)</code>. Overall, the pipeline could be: Collect all the sub-pixel colors within one pixel and store them in the <code>sample_buffer</code> -&gt; average them and output the averaged color value in the <code>frame_buffer</code>.</li>
+<li>The below three figures show the figure in a <code>sample_rate</code> of 1, 4, and 16, respectively. Obviously, a higher <code>sample_rate</code> is beneficial for reducing the aliasing and jaggy. This is because more points within a pixel are taken into account, so the edge won&#39;t be very sensitive whether it crosses the center of a pixel.</li>
+</ol>
+<p><img src="./assets/image-20240210154403369.png" alt="image-20240210154403369" style="zoom:45%;" /></p>
+<p><img src="./assets/image-20240210154437713.png" alt="image-20240210154437713" style="zoom:45%;" /></p>
+<p><img src="./assets/image-20240210154417550.png" alt="image-20240210154417550" style="zoom:45%;" /></p>
+<h2 id="task-3">Task 3</h2>
+<p>As shown below, the cubemen raised its arms to wave to me! By using the <code>rotate</code> transformation, the cubemen is more likely dancing~</p>
+<p><img src="./assets/image-20240210161637415.png" alt="image-20240210161637415" style="zoom:33%;" /></p>
+<h2 id="task-4">Task 4</h2>
+<ol>
+<li>The barycentric coordinates make it possible to express a point&#39;s coordinate based on three vertices of a triangle. For example, in the picture below, the vertices in a triangle present the colors red, blue, and green, respectively. Any point inside this triangle can be expressed by the three vertices (essentially, the vector from each vertice to the inner point). Once we know the coefficient (alpha, beta, and gamma), the color of this point can also be expressed through the color of the three vertices.</li>
+</ol>
+<p><img src="./assets/rgb_triangle.png" alt="Barycentric Perlin Noise – BorisTheBrave.Com" style="zoom:33%;" /></p>
+<ol>
+<li>The drawn picture of test7.svg is shown below.</li>
+</ol>
+<p><img src="./assets/image-20240210165834669.png" alt="image-20240210165834669" style="zoom:40%;" /></p>
+<h2 id="task-5">Task 5</h2>
+<ol>
+<li>For the nearest sampling, it returns the color of the pixel that is nearest to the mapped point. However, for bilinear sampling, it is sampled by the 4 pixels, which form a bounding box and cover the mapped point. And the horizontal/vertical distance influences the color of this point.</li>
+<li>As shown below, when the sample rate is 1, the figures reveal obvious aliasing and discontinuous lines. This defect, however, is reduced when the <code>sample_rate</code> is higher. As for the difference between nearest and bilinear sampling methods, bilinear sampling can be beneficial for reducing the flicker. Although sometimes it makes the figure a little blurry, the overall performance is better than nearest_sampling.</li>
+</ol>
+<p><img src="./assets/image-20240210172326462.png" alt="image-20240210172326462" style="zoom:50%;" /></p>
+<p><img src="./assets/image-20240210172342393.png" alt="image-20240210172342393" style="zoom:50%;" /></p>
+<p><img src="./assets/image-20240210172349015.png" alt="image-20240210172349015" style="zoom:50%;" /></p>
+<p><img src="./assets/image-20240210172407220.png" alt="image-20240210172407220" style="zoom:50%;" /></p>
+<h2 id="task-6">Task 6</h2>
+<ol>
+<li><p>For <code>L_ZERO</code>, it uses the base level texture without any mipmaps, using more memory; for level sample method <code>L_NEAREST</code>, it rounds the obtained level, which is calculated by the max distance between <code>p_uv</code> to <code>p_dx_uv</code> and <code>p_uv</code> to <code>p_dy_uv</code>. In terms of the <code>L_LINEAR</code> method, it uses a similar method to calculate the level, by using the upper round, lower round and the level itself.</p>
+</li>
+<li><p>I chose the png file, showing my home town Chongqing, China.</p>
+<ul>
+<li><p><code>L_ZERO</code> and <code>P_NEAREST</code></p>
+<p><img src="./assets/image-20240210191808428.png" alt="image-20240210191808428" style="zoom:15%;" /></p>
+</li>
+<li><p><code>L_ZERO</code> and <code>P_LINEAR</code></p>
+<p><img src="./assets/image-20240210191927148.png" alt="image-20240210191927148" style="zoom:15%;" /></p>
+</li>
+<li><p><code>L_NEAREST</code> and <code>P_NEAREST</code></p>
+<p><img src="./assets/image-20240210192105458.png" alt="image-20240210192105458" style="zoom:15%;" /></p>
+</li>
+<li><p><code>L_NEAREST</code> and <code>P_LINEAR</code></p>
+<p><img src="./assets/image-20240210191844977.png" alt="image-20240210191844977" style="zoom:15%;" /></p>
+</li>
+</ul>
+</li>
+</ol>
+</body></html>
