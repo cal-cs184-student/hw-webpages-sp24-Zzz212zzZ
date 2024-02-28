@@ -1,7 +1,154 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Homework 2 index.html here
-	</body>
-</html>
+<html><head><style>h1, img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+img {
+  width: 15%; /* Example width, adjust as needed */
+}</style></head><body><h1 id="cs-184-homework-1-rasterizer">CS 184 Homework 1: Rasterizer</h1>
+<blockquote>
+<p>This assignment is in <a href="https://cs184.eecs.berkeley.edu/sp24/docs/hw2-spec">https://cs184.eecs.berkeley.edu/sp24/docs/hw2-spec</a></p>
+<p>Submission doc is in <a href="https://cal-cs184-student.github.io/hw-webpages-sp24-Zzz212zzZ/hw2/index.html">https://cal-cs184-student.github.io/hw-webpages-sp24-Zzz212zzZ/hw2/index.html</a></p>
+<p>Collaborated by Yekang Chang and Jie Zeng</p>
+</blockquote>
+<h2 id="overview">Overview</h2>
+<p>This homework explores algorithms for manipulating and evaluating curves, surfaces, and mesh topologies. It covers the de Casteljau algorithm for Bezier curves and extends its principles to Bezier surfaces, discusses mesh editing operations, including edge flipping and splitting, and delves into mesh smoothing through Loop subdivision. Through iterative processes, these methods are applied to manipulate geometric shapes, demonstrating their transformation from simple structures to complex, smoothed surfaces. </p>
+<h2 id="task-1">Task 1</h2>
+<ol>
+<li><p>Casteljiu&#39;s algorithm firstly computes an interpolated point of each adjacent pair of control points, and each such iteration would reduce the number of one point by one until there remains only one point. In the implemented <code>evaluateStep</code>, it is essentially one iteration of the interpolation of each adjacent pair of control points. This point is the evaluated point through the parameter <code>t</code>. We first loop through current control points, while calculating the interpolated point of two adjacent control points. Then we collect the interpolated points and return them.</p>
+</li>
+<li><p>The custom file is drawn below:</p>
+<p><img src="./assets/image-20240224114318704.png" alt="image-20240224114318704" style="zoom: 50%;" /></p>
+</li>
+<li><ul>
+<li><p>Level 0:</p>
+<p><img src="./assets/image-20240224114427697.png" alt="image-20240224114427697" style="zoom:50%;" /></p>
+</li>
+<li><p>Level 1:</p>
+<p><img src="./assets/image-20240224114551459.png" alt="image-20240224114551459" style="zoom: 25%;" /></p>
+</li>
+<li><p>Level 2:</p>
+<p><img src="./assets/image-20240224114621635.png" alt="image-20240224114621635" style="zoom:25%;" /></p>
+</li>
+<li><p>Level 3:</p>
+<p><img src="./assets/image-20240224114636353.png" alt="image-20240224114636353" style="zoom:25%;" /></p>
+</li>
+<li><p>Level 4:</p>
+<p><img src="./assets/image-20240224114654728.png" alt="image-20240224114654728" style="zoom:25%;" /></p>
+</li>
+<li><p>Level 5:</p>
+</li>
+</ul>
+<p><img src="./assets/image-20240224114703916.png" alt="image-20240224114703916" style="zoom:25%;" /></p>
+<ul>
+<li><p>Completed:</p>
+<p><img src="./assets/image-20240224114815597.png" alt="image-20240224114815597" style="zoom:25%;" /></p>
+</li>
+</ul>
+</li>
+<li><ul>
+<li><p>Move control point:</p>
+<p><img src="./assets/image-20240224115018645.png" alt="image-20240224115018645" style="zoom:25%;" /></p>
+</li>
+<li><p>Scroll mouse to adjust <code>t</code>:</p>
+<p><img src="./assets/image-20240224115055561.png" alt="image-20240224115055561" style="zoom:25%;" /></p>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="task-2">Task 2</h2>
+<ol>
+<li><p>Since the de Casteljau algorithm is a recursive method used for evaluating Bezier curves at a given parameter value. This method extends naturally to Bezier surfaces by applying the algorithm in two dimensions.
+For Bezier surfaces, the control points are organized in a grid rather than a single vector. The surface is defined over a rectangular domain by two parameters, u and v,
+Implementation:
+- <code>evaluateStep</code> Function: This implemented function is essentially same as the one implemented in Question 1, but it takes 3D points for interpolation.
+- <code>evaluate1D</code> Function: We make it work by repeatedly calling evaluateStep to reduce the set of control points until only a single point remains, which is the evaluated point on the curve at t. This function is used twice in the process of evaluating a Bezier surface: once for each parameter direction (u and v).
+- <code>evaluate</code> This is where the Bezier surface is evaluated at parameters (u, v). Let it first constructs intermediate curves in one parameter direction (suppose u) by treating each row of control points as a separate Bezier curve and applying evaluate1D. The points obtained from these intermediate curves are then treated as control points for a final Bezier curve in the perpendicular direction (v), and evaluate1D is used again to find the final point on the surface at (u, v).</p>
+</li>
+<li><p>The rendered <code>teapot.bez</code> is shown below:</p>
+</li>
+</ol>
+<p><img src="./assets/image-20240224123517355.png" alt="image-20240224123517355" style="zoom:25%;" /></p>
+<h2 id="task-3">Task 3</h2>
+<p>Start with a zero vector to accumulate the area-weighted normals. Then iteration is conducted by the HalfedgeCIter. Each triangle connected to the current vertex is iterated and the square is calculated. We use the cross product of two triangle edges to find the face (triangle) normal, for the weighted area part, we get inspired by ChatGPT that the cross product of those edges is twice the area of the triangle, so that coefficient of 2 doesn’t matter when calculating the weighted sum. Finally, the accumulated N is normalized so that its magnitude is 1.</p>
+<ul>
+<li>default flat shading:</li>
+</ul>
+<p><img src="./assets/QUPgYmwVcpOcU7G7TGKU8gMcNMyRJNm88jfPJbPQbClSurBvMgzyYyygw-FU226kV2j7EGrhNfi5AlTW2TMKo1Nz2QNshPehbuj9M1vt8UZrN0eeuZmq7XlXbZ4u2i-RCUhwGJp6nLHKKD_8tF4jru8.png" alt="img" style="zoom: 25%;" /></p>
+<ul>
+<li>Phong shading:</li>
+</ul>
+<p><img src="./assets/ppCUszXcbwxTtkzuJpgHnJl2bXYPVvNDaga_LI8su5zr9ZD0Ihyqwi0O1KnbqlqMyMJYzh9lFZxIiMJAUp8Y20JXjt2QKAiOYJn2iYkDFEx8ZLMy9yZdAJ8RzXSPCvptyDA_EKv-1LAkoit1nmlOYek.png" alt="img" style="zoom:25%;" /></p>
+<h2 id="task-4">Task 4</h2>
+<p>We split the edge flip process into two parts: elements identification and reassignation. As long as the input <code>e0</code> is not a boundary, which means it has a twin part, we implement the elements identification and find<code>4</code> vertices, <code>6</code> halfedges and <code>2</code> faces. For the implementation tricks, we found the setNeighbors() function in halfEdgeMesh.h file which can set the pointers in one go instead of manually setting every pointer. Then <code>setNeighbors</code> is used to reassign connected elements of one halfedge, and set halfedge of each vertex as well as face.</p>
+<ul>
+<li>Before flipping:</li>
+</ul>
+<p><img src="./assets/63NBvQyNqa3NWnfTqdHRNPjWJgIHYat0UwF5ZV397OQZLChYrTyttqGMEy47qdAfkldwHlhgC-CPYZ9jj2nAJfOeg24WIeBpsUoZa90MeEvW_mVedNUGJlHfA-mLLvgmbXexGypm33j-V6J8kd-w3zE.png" alt="img" style="zoom:25%;" /></p>
+<ul>
+<li>After flipping:</li>
+</ul>
+<p><img src="./assets/eVI8Lbpc1TOf4aZ4bJWLFbYPIL_HZnU8vqu3sxwtr76JBYuz6mnxGcrzRIrO0Zdtgnnt1xhC4kH9yAJ76DOLEy6deiurmIysPSLn4BamqsOD--P5G0buqSWkqCBNlcbfQRbjMQh-Hkt3NfRlOZ0WyN4.png" alt="img" style="zoom:25%;" /></p>
+<p>Our first attempt failed because of the wrong parameters in the setNeighbors() function and the lack of setting vertices and face pointers. After redrawing the triangle example we fixed the parameters, but some bugs still existed like sometimes if we re-flip the edge, the triangle became black. Then we realized that might due to the lack of setting vertices and faces halfedges pointers.</p>
+<h2 id="task-5">Task 5</h2>
+<p><img src="./assets/5haykoeWeNdUu0dP3FtXuVzawzwIMnjkELA24-5HaWLbGtuGBP5s4cdwhVRs0ItKXwdwJqd-C4WIGu7oOtfCoScmBoMH8wyMv7XoLH2fh1eAjGRzCRiQ7-_TIl1nyq0BF64OP5IMTMw0HlP_8PVg7OA.png" alt="img" style="zoom: 33%;" /></p>
+<p>This is what the mesh looks like after edge splitting. <code>1</code> vertex, <code>2</code> faces, <code>3</code> edges, and <code>6</code> halfedges are added in the newly split mesh. After initializing these elements, we first set neighbors of the new <code>6</code> edges, and updated the neighbors of the originally existing <code>h0</code> and <code>h1</code>. Then, all of the 4 original edges <code>h1, h2, h3, h4</code> are updated by reassigning their <code>next</code>. So far, both the added and the existing halfedges have been updated. Then, the vertices are updated by setting their halfedge (to make a note: a vertex may have multiple halfedges which come from this same vertex, we uniformly chose the inner edge, instead of the border edge. E.g., the halfedge of <code>v1</code> is set to be <code>h1</code> instead of <code>h2</code>). Then, the newly created edges and faces are set to assign their halfedge. So far, all work has been completed.</p>
+<ul>
+<li>Before splitting:</li>
+</ul>
+<p><img src="./assets/4WittLRJGechbqhQ-XZo25_wxnaculAu0It5QQDxOE94sQr2lPzVWXBKnDF1woEDHo_CYpH3vaxcddB7lwHKzWIQwEa6wuRfBvdTOkT9zC42xbun5NOOj2KWnZiGfIZ99plz5an1TOjCyiP_17dv4NI.png" alt="img" style="zoom: 25%;" /></p>
+<ul>
+<li>After splitting:</li>
+</ul>
+<p>  <img src="./assets/Pxqf1B4tcx3KbKoyKFmRfQ7eznSOPcbgI60qiCYKFowCZykSWfTArEoQ2Ey_QMkHPClA0lQzIA2Wj6Cw_mx2QunYwSY8JGEfzYc6tAo9S6OetUgZBcHG2pIGbmIIDKbXLm-0Z91lNBY2Hr5abXYCyzA.png" alt="img" style="zoom:25%;" /></p>
+<ul>
+<li>Origin  (before flipping/splitting):</li>
+</ul>
+<p><img src="./assets/LCba2jBOw2B1A1_JJC-ap106fpFqgJQ9XPKUWtxqd4OSBtbAlX8g_pKsENqrzZlN94fZgHaDk2yMwolMGKhhw3eeCK1t27GadzAlQ3LH6Bf8gtBB90_DZdQ5l64-8Z1P_6_MbPlmm90_Wm8sUQbJM84.png" alt="img" style="zoom:25%;" /></p>
+<ul>
+<li>After flipping (highlighted by Magenta):</li>
+</ul>
+<p><img src="./assets/RVX7h-s9BUSJp8AwNEl0NjT9fohueb2wse3n3driw7j5FU51jBmbsbbBNoBQzOUsSWd0BA7K3mk6KLZzattQSPkhr-iD0Wtor-5qlYfwP3C9kHdyhFZ5a_KzYLWgNYFhtlKmX9-RZ2H871xoMzy5UU0.png" alt="img" style="zoom:25%;" /></p>
+<ul>
+<li>After splitting the horizontal edge right under the highlighted Magenta edge:</li>
+</ul>
+<p><img src="./assets/EpDBjZ9POqmfbnDGKq-1Fz-07a9HnFuOPMU8syv3pg5gA8eV4lSIClVotbGrwezK6pq_jyQoksfObJPUsQpUeqNFjdQb3BStUZcMK-YzmFegOUhOrrYEK9EVe2fX-WjoOgeG8VVgqmQLQcnIwQHFM20.png" alt="img" style="zoom:25%;" /></p>
+<h2 id="task-6">Task 6</h2>
+<p>Following the function comments, we first iterated over all vertices in the mesh and computed their new positions based on the Loop subdivision weighting rules. For each vertex, we accumulated the positions of adjacent vertices and calculated the weighted average, considering the vertex&#39;s degrees. To avoid accidental changes to the original mesh too early, we found the <code>Vertex::newPosition</code> helpful.</p>
+<p><img src="./assets/HMOGuIKGqvDamfWM_B6lXojyshUwhs7UXbSCiTBhPRdgPwCb5X4QdBeZp4GhRm28P4gbhAYlBNbN5hstSdwNTrCGK_IEIcn3R3br24YTtG7RKjhuZ4xrLbtPlez07F_fMf7ql1uRcbTvnhHxlUSIUOo.png" alt="img" style="zoom:25%;" /></p>
+<p>Then we looped through all the edges calculated the new positions for the midpoints of all edges and stored these in <code>Edge::newPosition</code>. The rule we used here is:</p>
+<p><img src="./assets/sbSQzejE993Ak2YwxDZkBL_nft6u9rD_lxR_1XfG-5VpqbpFvrllKkLbMrJsasT7DqxdtfrVeHjavgFK55BSYICh1ICUG_gT5gDiCbWO9ZrtrHnoGr5sh0_Kmx6VL-FggfiRebyXAh6gQUQfDLcQZ5U.png" alt="img" style="zoom:25%;" /></p>
+<p>We then split every original edge in the mesh to create new vertices at the edge midpoints. This was done by iterating over a list of original edges collected before starting the splitting process. After splitting, we used the isNew of the edges to distinguish new and old edges. For the newly created edges, we used a if statement to check whether it connects old and new vertices and flip that edge.
+Finally, we updated the positions of all vertices, both original and new, to the positions computed in previous steps. This finalized the new geometry of the subdivided mesh.</p>
+<ul>
+<li>loop subdivisions without pre-splitting:</li>
+</ul>
+<p><img src="./assets/SPgOgbUk4aZcrbkm7PFxPAC0LfMdTuUu45SgmUVydgv5y0U32NeXH8gSOe75pjFSOTtodEZz4prJtjUpmidvbmgXs0d65Jlc4QvyBZrZYadf3y5tmvFF5LGY33X56tZmtLJumrRTPIlDBgJ1erSVLpo.png" alt="img" style="zoom:25%;" /></p>
+<p><img src="./assets/pqUBD9imfEMc5nxjD3jXoRJenkNC14AOfzlBO8ig17nbDIQbUDS9MUwW0PhVgOrNwWF5LnKlnftcgs4E7wXA4jYbnFEWK0TPb5oddUddWP2G79o6chRkRdHgnm8Ws7uBzCXe5IcHgn7V1VDix5wd8-o.png" alt="img" style="zoom:25%;" /></p>
+<p><img src="./assets/pE-OB5onbIokzEzrXrSioT_cxE4OQUAw6aQ6VfDp29wML7gX-t5vUmKqA6GI6_5HEnp_XiDHGHU2Etdd_MEDoCwY0akZ9vYZufDeQG4OTSJEphASnq7FKh1pbVtARjuLCzawNUh-BG3zEa4TjbcRXiQ.png" alt="img" style="zoom:25%;" /></p>
+<p><img src="./assets/1lCRJyK24FaXTlng-OkBOjWJfIQBtLcdH2hJn8RC-ZFNytQGX5kIpo98g2IcQzcBphSaqzpJr5u2Gm40IaWm2T9UoNh1N5DW0q96b-gKpLcrIB1bo2-Ki0FfpHPQupTsmDKiiwMOIEkyFKjsGkwzWBw.png" alt="img" style="zoom:25%;" /></p>
+<ul>
+<li>loop subdivisions with pre-splitting:</li>
+</ul>
+<p><img src="./assets/VUI3guOZ07FuZRMblpOOmk6eA34drO-7_ydWOnUSVQ-g7K3-2kPkLdRbCzooAwUseYW3Ip2CwZf2AOApu91IVK2XX6p35kokPSNUkeyg-qqp8DzWoyhXvf4hvvKJ_9s0qI5wGprH-dadjiKvWX8ZfnQ.png" alt="img" style="zoom:25%;" /></p>
+<p><img src="./assets/LyESWFddyVJtxra8mSMyTLQaSBk0pBz38_-P3z7RsbpBuhau7Dss3-r5XSlG3EnG79KmTSLmAr9g0yl3mXLlRKJJf68PsEqHl4kQZNfhx1y0OQmXe9QxhrtI5CGD4S9PK6XzlugjA2tEzkvKfKWRjyg.png" alt="img" style="zoom:25%;" /></p>
+<p><img src="./assets/1UlVPW2aXdQ5fgeznnvpa6nltJJRB6s8-SFdpbdEMUqfqZnKPReu9emCdcPWnMZyxYPCx7GfhxBkVVG2IyeBGu8W5QDTsntpyvHcwoddBRwde9sELs7chf-zMnuoO1-VIiP6oOWHr0cIwsZTpe7tAig.png" alt="img" style="zoom:25%;" /></p>
+<p><img src="./assets/M4Y4m3Cfu302pCL-tbXAcUC-sHQEywHOKmzPUisr0OyBqVHb9lx7xgCyuQRW77IEpR7-6M4JyVhcdgyp4bOEDFtCOXKzXJ5gLKlp4YPHgJIc6PIVKPe6bNbWcs8A9Fv9plgeslpBBf_Nxm5VrdWc558.png" alt="img" style="zoom:25%;" /></p>
+<p>The loop subdivision makes the sharp corners and edges smoother, but sometimes we don’t want to see that kind of smooth, we can reduce this effect by pre-splitting some edges.</p>
+<p>We added the number of edges around the sharp features through splitting and the corners or edges became less smooth after several loop subdivisions.</p>
+<p>Slightly asymmetric after repeated subdivisions:</p>
+<p><img src="./assets/P7mLhs-DyUkeO4bpovPY8sU5FzQjH-FsOOQ8rQvY_hNu6uqx_nAjwDH3j3LeBg0AVwHH3FwjMVbb3p6VueAqaVzTVVT0nnWjf_6ne2brdJpkqIHu7mDNZTWk9oPS6TgmiQ4P6NTx2USR-Nc1JtI-Pkg.png" alt="img" style="zoom:25%;" /></p>
+<p>The asymmetry occurs due to the way the Loop subdivision averages vertex positions. If the initial mesh lacks sufficient edges, the resulting vertex positions after subdivision may be unevenly distributed due to the uneven influence of adjacent vertices. The original edges of the cube have more influence than the center of the faces, leading to an asymmetric subdivision.</p>
+<ul>
+<li><p>Before Pre-processing: When initially loading the cube, each face has only one edge. After subdivision, vertices on the original edges are averaged with their neighboring vertices, but since each face only has one edge, the new vertices created during subdivision are not evenly distributed, leading to asymmetry.</p>
+</li>
+<li><p>After Pre-processing: By pre-splitting each face of the cube so that each face has two diagonal edges, we introduce additional geometry that helps in distributing the new vertices more evenly upon subdivision.</p>
+</li>
+</ul>
+<p>We can pre-process the cube with edge splits on each side of the cube to ensure that there are 2 diagonals on each side of the cube like this:</p>
+<p><img src="./assets/erPtNlg8kz-hGhiJgpLZR8HnSlgWF9tj68ZWj874H9J8IJez5XCAi-fWx7WMy9MBDZwEZTtO2Dn_BxU79hfpMH8z-zKEWfSgEjN6hMm2UFrCqzco0JOHugvPCd7FFReKOt328K8vrIXDeTP9YJFCqXo.png" alt="img" style="zoom:25%;" /></p>
+<p>Symmetric version:</p>
+<p><img src="./assets/T6v61wDG-jDRuCWlgin2ztRsq2H_5vnROLMviU9jtPxO0MNftdRetPOut6e9cS1ltC0f8iw0Rr80RIUrjP01-hNtmVVtG7J8idenrY-nN2ASjruRi_t_EnRiYSfMs4eikorlbRbGiBCSw5pdg-2GGUc.png" alt="img" style="zoom:25%;" /></p>
+</body></html>
